@@ -1,0 +1,35 @@
+<?php
+
+/**
+ * @file
+ * Contains jumplink.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function jumplink_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the jumplink module.
+    case 'help.page.jumplink':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('A Drupal 8 Module which allows editors to create jumplinks without needing to set classes and anchors.') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function jumplink_theme() {
+  return [
+    'jumplink' => [
+      'render element' => 'children',
+    ],
+  ];
+}

@@ -1,0 +1,5 @@
+name: 'jumplink'
+type: module
+description: 'A Drupal 8 Module which allows editors to create jumplinks without needing to set classes and anchors.'
+core: 8.x
+package: 'Jump Links'
