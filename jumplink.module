@@ -16,7 +16,7 @@ function jumplink_help($route_name, RouteMatchInterface $route_match) {
     case 'help.page.jumplink':
       $output = '';
       $output .= '<h3>' . t('About') . '</h3>';
-      $output .= '<p>' . t('A Drupal 8 Module which allows editors to create jumplinks without needing to set classes and anchors.') . '</p>';
+      $output .= '<p>' . t('A Drupal 8 Module which allows editors to create jump links without needing to set classes and anchors.') . '</p>';
       return $output;
 
     default:
@@ -28,8 +28,17 @@ function jumplink_help($route_name, RouteMatchInterface $route_match) {
  */
 function jumplink_theme() {
   return [
-    'jumplink' => [
-      'render element' => 'children',
+    'page__some__core_paragraph' => [ //some core paragraph twig file that you will want to override.
+      'template' => 'some--template-file-paragraph' //files is a .twig file
     ],
   ];
+}
+
+
+/**
+ * @param $variables Drupal themeing Variables and arrays.
+ *   Contains the renderable elements.
+ */
+function jumplink_preprocess_node(&$variables) {
+  //alter the variables here, you do not need to return, & is pass by reference.
 }
