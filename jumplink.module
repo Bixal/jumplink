@@ -36,9 +36,41 @@ function jumplink_theme() {
 
 
 /**
+ * Build jumplist links
  * @param $variables Drupal themeing Variables and arrays.
  *   Contains the renderable elements.
  */
 function jumplink_preprocess_node(&$variables) {
-  //alter the variables here, you do not need to return, & is pass by reference.
+  $headings = [];
+  $render = [
+    '#type' => 'markup',
+    '#markup' => '<div class="section-jump-links"><div class="jump-links">',
+    '#weight' => -50,
+  ];
+
+  $paragraphs = array_filter($variables['content']['field_paragraph'], 'paragraphs', ARRAY_FILTER_USE_BOTH);
+  $jumplinks = array_map('build_jump_links', $paragraphs);
+
+  if (count($jumplinks) >= 2) {
+    foreach ($jumplinks as $jumplink) {
+      $render['#markup'] .= "<div class='jump-link'><a href='{$jumplink['path']}'>{$jumplink['header']}</a></div>";
+    }
+    $render['#markup'] .= '</div></div>';
+    $variables['content']['jump-link'] = $render;
+  }
+}
+
+function paragraphs($paragraph, $key) {
+  return 
+    is_int($key) &&
+    $paragraph['#paragraph']->getType() == 'basic_text' &&
+    $paragraph['#paragraph']->__isset('field_plain_title') &&
+    !$paragraph['#paragraph']->get('field_plain_title')->isEmpty();
+}
+
+function build_jump_links($paragraph) {
+  return [
+    'header' => $paragraph['#paragraph']->get('field_plain_title')->value,
+    'path' => "#paragraph/{$paragraph['#paragraph']->id()}",
+  ];
 }
