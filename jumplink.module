@@ -28,7 +28,7 @@ function jumplink_help($route_name, RouteMatchInterface $route_match) {
  */
 function jumplink_theme() {
   return [
-    'page__some__core_paragraph' => [ //some core paragraph twig file that you will want to override.
+    'page__some__core_paragraph' => [ //paragraph twig file that you want to override.
       'template' => 'some--template-file-paragraph' //files is a .twig file
     ],
   ];

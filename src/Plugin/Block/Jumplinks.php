@@ -7,6 +7,8 @@ use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Routing\CurrentRouteMatch;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Cache\Cache;
+use Drupal\paragraphs\Entity\Paragraph;
+use Drupal\Component\Utility\Html;
 
 /**
  * Provides a 'Jumplinks' block.
@@ -18,26 +20,23 @@ use Drupal\Core\Cache\Cache;
  */
 class Jumplinks extends BlockBase implements ContainerFactoryPluginInterface {
 
-  protected $current_route_match;
+  /**
+   * Current route match.
+   *
+   * @var \Drupal\Core\Routing\CurrentRouteMatch
+   */
+  protected $currentRouteMatch;
 
   /**
-   * @param array $configuration
-   * @param string $plugin_id
-   * @param mixed $plugin_definition
-   * @param Drupal\Core\Routing\CurrentRouteMatch $current_route_match
+   * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, CurrentRouteMatch $current_route_match) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, CurrentRouteMatch $currentRouteMatch) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
-    $this->current_route_match = $current_route_match;
+    $this->currentRouteMatch = $currentRouteMatch;
   }
 
   /**
-   * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
-   * @param array $configuration
-   * @param string $plugin_id
-   * @param mixed $plugin_definition
-   *
-   * @return static
+   * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     return new static(
@@ -59,22 +58,24 @@ class Jumplinks extends BlockBase implements ContainerFactoryPluginInterface {
     ];
     $jumplinks = [];
     $build['jumplinks'] = '';
-    $current_node = $this->current_route_match->getParameter('node');
-    if ($current_node == null) return $build;
+    $current_node = $this->currentRouteMatch->getParameter('node');
+    if ($current_node == NULL) {
+      return $build;
+    }
     if ($current_node->hasField('field_paragraph')) {
       $paragraphs = $current_node->get('field_paragraph')->getValue();
-      foreach($paragraphs as $p) {
-        $paragraph = \Drupal\paragraphs\Entity\Paragraph::load( $p['target_id'] );
-        if($paragraph &&
+      foreach ($paragraphs as $p) {
+        $paragraph = Paragraph::load($p['target_id']);
+        if ($paragraph &&
         $paragraph->getType() == 'basic_text' &&
         $paragraph->__isset('field_plain_title') &&
         !$paragraph->get('field_plain_title')->isEmpty()) {
           $jumplinks[] = [
             'header' => $paragraph->get('field_plain_title')->value,
-            'path' => "#paragraph-{$paragraph->id()}"
+            'path' => "#" . Html::getId($paragraph->get('field_plain_title')->value),
           ];
         }
-      }      
+      }
     }
     if (count($jumplinks) >= 2) {
       foreach ($jumplinks as $jumplink) {
@@ -82,25 +83,33 @@ class Jumplinks extends BlockBase implements ContainerFactoryPluginInterface {
       }
       $render['#markup'] .= '</div></div>';
       $build['jumplinks'] = $render;
-    } 
+    }
     return $build;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getCacheTags() {
-    //With this when your node change your block will rebuild
+    // With this when your node change your block will rebuild.
     if ($node = \Drupal::routeMatch()->getParameter('node')) {
-      //if there is node add its cachetag
+      // If there is node add its cachetag.
       return Cache::mergeTags(parent::getCacheTags(), array('node:' . $node->id()));
-    } else {
-      //Return default tags instead.
+    }
+    else {
+      // Return default tags instead.
       return parent::getCacheTags();
     }
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getCacheContexts() {
-    //if you depends on \Drupal::routeMatch()
-    //you must set context of this block with 'route' context tag.
-    //Every new route this block will rebuild
+    /* If you depends on \Drupal::routeMatch()
+    you must set context of this block with 'route' context tag.
+    every new route this block will rebuild */
     return Cache::mergeContexts(parent::getCacheContexts(), array('route'));
   }
+
 }
