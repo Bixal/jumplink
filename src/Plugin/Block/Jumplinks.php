@@ -5,6 +5,7 @@ namespace Drupal\jumplink\Plugin\Block;
 use Drupal\Core\Block\BlockBase;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Routing\CurrentRouteMatch;
+use Drupal\Core\Config\ConfigFactory;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Cache\Cache;
 use Drupal\paragraphs\Entity\Paragraph;
@@ -28,11 +29,25 @@ class Jumplinks extends BlockBase implements ContainerFactoryPluginInterface {
   protected $currentRouteMatch;
 
   /**
+   * Configuration settings.
+   *
+   * @var \Drupal\Core\Config\Config
+   */
+  protected $config;
+
+  /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, CurrentRouteMatch $currentRouteMatch) {
+  public function __construct(array
+                              $configuration,
+                              $plugin_id,
+                              $plugin_definition,
+                              CurrentRouteMatch $currentRouteMatch,
+                              ConfigFactory $config
+  ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->currentRouteMatch = $currentRouteMatch;
+    $this->config = $config;
   }
 
   /**
@@ -43,7 +58,8 @@ class Jumplinks extends BlockBase implements ContainerFactoryPluginInterface {
       $configuration,
       $plugin_id,
       $plugin_definition,
-      $container->get('current_route_match')
+      $container->get('current_route_match'),
+      $container->get('config.factory')
     );
   }
 
@@ -51,6 +67,12 @@ class Jumplinks extends BlockBase implements ContainerFactoryPluginInterface {
    * {@inheritdoc}
    */
   public function build() {
+    $config = $this->config->get('jumplink.settings');
+    $paragraph_field_name = $config->get('field_name');
+    $paragraph_machine_name = $config->get('paragraph_machine_name');
+    $paragraph_type = $config->get('paragraph_type');
+    $field_name = $config->get('field_name');
+
     $render = [
       '#type' => 'markup',
       '#markup' => '<div class="section-jump-links"><div class="jump-links">',
@@ -62,18 +84,14 @@ class Jumplinks extends BlockBase implements ContainerFactoryPluginInterface {
     if ($current_node == NULL) {
       return $build;
     }
-    if ($current_node->hasField('field_paragraph')) {
-      $paragraphs = $current_node->get('field_paragraph')->getValue();
+    if ($current_node->hasField($paragraph_machine_name)) {
+      $paragraphs = $current_node->get($paragraph_machine_name)->getValue();
       foreach ($paragraphs as $p) {
         $paragraph = Paragraph::load($p['target_id']);
-        if ($paragraph &&
-        $paragraph->getType() == 'basic_text' &&
-        $paragraph->__isset('field_plain_title') &&
-        !$paragraph->get('field_plain_title')->isEmpty()) {
-          $jumplinks[] = [
-            'header' => $paragraph->get('field_plain_title')->value,
-            'path' => "#" . Html::getId($paragraph->get('field_plain_title')->value),
-          ];
+        if ($this->validateParagraph($paragraph, $paragraph_field_name)) {
+          if (!empty($paragraph_type) || $paragraph_type !== $paragraph->getType()) {
+            $jumplinks[] = $this->buildJumplink($paragraph, $field_name);
+          }
         }
       }
     }
@@ -85,6 +103,18 @@ class Jumplinks extends BlockBase implements ContainerFactoryPluginInterface {
       $build['jumplinks'] = $render;
     }
     return $build;
+  }
+
+  /**
+   * @param Paragraph $paragraph
+   * @param $field_name
+   * @return array A renderable array with our jumplink.
+   */
+  private function buildJumplink(Paragraph $paragraph, $field_name){
+    return [
+      'header' => $paragraph->get($field_name)->value,
+      'path' => "#paragraph-{$paragraph->id()}",
+    ];
   }
 
   /**
@@ -111,5 +141,24 @@ class Jumplinks extends BlockBase implements ContainerFactoryPluginInterface {
     every new route this block will rebuild */
     return Cache::mergeContexts(parent::getCacheContexts(), array('route'));
   }
+
+  /**
+   * @param Paragraph $paragraph
+   * @param string $field_name
+   *   Optional. Limit Jumplinks to a single field bundle on paragraphs.
+   * @return bool
+   *
+   * Validate we have a paragraph, and that the correct data is available.
+   */
+  private function validateParagraph(Paragraph $paragraph, $field_name){
+    if ($paragraph instanceof Paragraph) {
+      if ($paragraph->__isset($field_name) && !$paragraph->get($field_name)->isEmpty()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+
 
 }

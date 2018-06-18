@@ -1,0 +1,9 @@
+
+jumplink.jumplink_admin_form:
+  path: 'admin/config/jumplink'
+  defaults:
+    _form: '\Drupal\jumplink\Form\JumplinkAdminForm'
+    _title: 'Jumplink Configuration'
+  requirements:
+    _permission: 'administer site configuration'
+
