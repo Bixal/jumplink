@@ -33,18 +33,22 @@
   ]
 %}
 
-{% if content.jumplinks is iterable %}
+{% if jumplinks %}
   <div{{ attributes.addClass(classes) }}>
     <nav aria-labelledby="page-content" class="section-jump-links">
+      {{ title_prefix }}
       {% if label %}
         <h2{{ title_attributes }}.setAttribute('id', 'page-content') >{{ label }}</h2>
       {% endif %}
+      {{ title_suffix }}
       {% block content %}
-          <ul class="jump-links">
-            {% for jumplink in content.jumplinks %}
-            <li class='jump-link'>
-              <a href="{{jumplink.path}}">{{jumplink.header}}</a></div>
-          </ul>
+        <ul class="jump-links">
+          {% for jumplink in jumplinks %}
+            <li class="jump-link">
+              <a href="{{ jumplink.path }}">{{ jumplink.header }}</a>
+            </li>
+          {% endfor %}
+        </ul>
       {% endblock %}
     </nav>
   </div>

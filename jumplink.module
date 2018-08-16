@@ -26,18 +26,23 @@ function jumplink_help($route_name, RouteMatchInterface $route_match) {
 /**
  * Implements hook_theme().
  */
-function jumplink_theme() {
-  return [
-    'page__some__core_paragraph' => [ //paragraph twig file that you want to override.
-      'template' => 'some--template-file-paragraph' //files is a .twig file
-    ],
-  ];
+function jumplink_theme($existing, $type, $theme, $path) {
+  return array(
+    'jumplinks' => array(
+      'template' => 'block--jumplinks',
+      'variables' => array(
+        'jumplinks' => NULL,
+      ),
+    )
+  );
 }
 
 /**
- * @param $variables Drupal themeing Variables and arrays.
- *   Contains the renderable elements.
+ * Implements hook_preprocess_paragraph().
  */
-function jumplink_preprocess_node(&$variables) {
-  //alter the variables here, you do not need to return, & is pass by reference.
+function jumplink_preprocess_paragraph(&$variables) {
+  // Adding an ID attribute to all paragraphs so the jump links have something
+  // to actually link to.
+  $pid = $variables['paragraph']->id();
+  $variables['attributes']['id'] = 'paragraph-' . $pid;
 }

@@ -72,36 +72,30 @@ class Jumplinks extends BlockBase implements ContainerFactoryPluginInterface {
     $paragraph_machine_name = $config->get('paragraph_machine_name');
     $paragraph_type = $config->get('paragraph_type');
     $field_name = $config->get('field_name');
-
-    $render = [
-      '#type' => 'markup',
-      '#markup' => '<div class="section-jump-links"><div class="jump-links">',
-      '#weight' => -50,
-    ];
+    $build = ['#theme' => 'jumplinks', '#jumplinks' => NULL];
     $jumplinks = [];
-    $build['jumplinks'] = '';
+
     $current_node = $this->currentRouteMatch->getParameter('node');
-    if ($current_node == NULL) {
+
+    if ($current_node == NULL || !$current_node->hasField($paragraph_machine_name)) {
       return $build;
     }
-    if ($current_node->hasField($paragraph_machine_name)) {
-      $paragraphs = $current_node->get($paragraph_machine_name)->getValue();
-      foreach ($paragraphs as $p) {
-        $paragraph = Paragraph::load($p['target_id']);
-        if ($this->validateParagraph($paragraph, $paragraph_field_name)) {
-          if (!empty($paragraph_type) || $paragraph_type !== $paragraph->getType()) {
-            $jumplinks[] = $this->buildJumplink($paragraph, $field_name);
-          }
+
+    $paragraphs = $current_node->get($paragraph_machine_name)->getValue();
+
+    foreach ($paragraphs as $p) {
+      $paragraph = Paragraph::load($p['target_id']);
+      if ($this->validateParagraph($paragraph, $paragraph_field_name)) {
+        if (!empty($paragraph_type) || $paragraph_type !== $paragraph->getType()) {
+          $jumplinks[] = $this->buildJumplink($paragraph, $field_name);
         }
       }
     }
+
     if (count($jumplinks) >= 2) {
-      foreach ($jumplinks as $jumplink) {
-        $render['#markup'] .= "<div class='jump-link'><a href='{$jumplink['path']}'>{$jumplink['header']}</a></div>";
-      }
-      $render['#markup'] .= '</div></div>';
-      $build['jumplinks'] = $render;
+      $build['#jumplinks'] = $jumplinks;
     }
+
     return $build;
   }
 
@@ -158,7 +152,4 @@ class Jumplinks extends BlockBase implements ContainerFactoryPluginInterface {
     }
     return false;
   }
-
-
-
 }

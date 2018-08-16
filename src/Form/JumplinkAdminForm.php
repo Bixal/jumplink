@@ -27,7 +27,7 @@ class JumplinkAdminForm extends ConfigFormBase {
     $form['paragraph_machine_name'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Paragraph Machine Name'),
-      '#description' => $this->t('The paragraph bundle the jumplinks should apply to'),
+      '#description' => $this->t('The paragraph field the jumplinks should apply to'),
       '#maxlength' => 64,
       '#size' => 64,
       '#weight' => '0',
