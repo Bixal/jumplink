@@ -45,7 +45,7 @@
         <ul class="jump-links">
           {% for jumplink in jumplinks %}
             <li class="jump-link">
-              <a href="{{ jumplink.path }}">{{ jumplink.header }}</a>
+              <a href="{{ jumplink.path }}" title="{{ jumplink.header }}">{{ jumplink.header }}</a>
             </li>
           {% endfor %}
         </ul>
