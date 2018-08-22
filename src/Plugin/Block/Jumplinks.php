@@ -72,8 +72,7 @@ class Jumplinks extends BlockBase implements ContainerFactoryPluginInterface {
     $paragraph_machine_name = $config->get('paragraph_machine_name');
     $paragraph_type = $config->get('paragraph_type');
     $field_name = $config->get('field_name');
-    $build = ['#theme' => 'jumplinks', '#jumplinks' => NULL];
-    $jumplinks = [];
+    $build = NULL;
 
     $current_node = $this->currentRouteMatch->getParameter('node');
 
@@ -94,6 +93,7 @@ class Jumplinks extends BlockBase implements ContainerFactoryPluginInterface {
 
     if (count($jumplinks) >= 2) {
       $build['#jumplinks'] = $jumplinks;
+      $build['#theme'] = 'jumplinks';
     }
 
     return $build;
