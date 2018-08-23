@@ -73,6 +73,7 @@ class Jumplinks extends BlockBase implements ContainerFactoryPluginInterface {
     $paragraph_type = $config->get('paragraph_type');
     $field_name = $config->get('field_name');
     $build = NULL;
+    $jumplinks = [];
 
     $current_node = $this->currentRouteMatch->getParameter('node');
 
